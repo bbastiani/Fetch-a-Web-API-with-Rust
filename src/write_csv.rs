@@ -39,13 +39,18 @@ pub fn save_data_csv(filename: &str, data: &Vec<Measure>) -> Result<(), CsvError
         save_csv(filename, data)?;
         info!("Save {} records", data.len());
         return Ok(());
+    } 
+    // if last timestamp is less than last line timestamp, we don't save data
+    if data[data.len() - 1].instante <= last_line_parsed.instante {
+        info!("No new data");
+        return Ok(());
     }
     // save data where timestamp is greater than last line timestamp
     for (id, measure) in data.iter().rev().enumerate() {
         // check if measure is already saved
-        if measure.instante < last_line_parsed.instante {
+        if measure.instante <= last_line_parsed.instante {
             // we iterate in reverse order, then if instant is less than last line, we save the rest of the data
-            save_csv(filename, &data[data.len() - id + 1..].to_vec())?;
+            save_csv(filename, &data[data.len() - id..].to_vec())?;
             info!("Save {} records", id - 1);
             break;
         }
