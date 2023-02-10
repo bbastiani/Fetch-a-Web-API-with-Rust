@@ -1,9 +1,12 @@
 use crate::utils::Measure;
+use crate::file::check_file;
+use crate::file::CheckFileError;
+use std::fs::File;
 use csv;
 use log::info;
 use serde::de::DeserializeOwned;
 use std::{
-    fs::{File, OpenOptions},
+    fs::{OpenOptions},
     io::Read,
 };
 use thiserror::Error;
@@ -18,9 +21,17 @@ pub enum CsvError {
     ReadLastLineError,
     #[error("Parse line error")]
     ParseLineError,
+    #[error("Check File Error")]
+    CreateFileError(#[from] CheckFileError),
 }
 
 pub fn save_data_csv(filename: &str, data: &Vec<Measure>) -> Result<(), CsvError> {
+    // check if file exist or is empty
+    if check_file(filename)? {
+        save_csv(filename, data)?;
+        info!("Save {} records", data.len());
+        return Ok(());
+    }    
     let last_line = read_last_line(filename)?;
     let last_line_parsed: Measure = parse_csv_line(last_line)?;
     // if first timestamp is greater than last line timestamp, we save all data
@@ -29,7 +40,7 @@ pub fn save_data_csv(filename: &str, data: &Vec<Measure>) -> Result<(), CsvError
         info!("Save {} records", data.len());
         return Ok(());
     }
-
+    // save data where timestamp is greater than last line timestamp
     for (id, measure) in data.iter().rev().enumerate() {
         // check if measure is already saved
         if measure.instante < last_line_parsed.instante {

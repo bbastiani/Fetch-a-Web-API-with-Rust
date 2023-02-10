@@ -24,3 +24,4 @@ pub struct Measure {
     pub instante: DateTime<FixedOffset>,
     pub carga: f32,
 }
+

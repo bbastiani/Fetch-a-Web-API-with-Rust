@@ -5,6 +5,7 @@ mod config_yaml;
 mod logging;
 mod request;
 mod utils;
+mod file;
 mod write_csv;
 // use
 use config_yaml::{load_config_file, LoadConfigError};
